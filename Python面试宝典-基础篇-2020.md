@@ -748,5 +748,280 @@ Python中有四种作用域，分别是局部作用域（**L**ocal）、嵌套�
 15. Python 3中字典的`keys`、`values`、`items`方法都不再返回`list`对象，而是返回`view object`，内置的`map`、`filter`等函数也不再返回`list`对象，而是返回迭代器对象。
 16. Python 3标准库中某些模块的名字跟Python 2是有区别的；而在三方库方面，有些三方库只支持Python 2，有些只能支持Python 3。
 
-#### 
+####题目31：谈谈你对“猴子补丁”（monkey patching）的理解。
+
+“猴子补丁”是动态类型语言的一个特性，代码运行时在不修改源代码的前提下改变代码中的方法、属性、函数等以达到热补丁（hot patch）的效果。很多系统的安全补丁也是通过猴子补丁的方式来实现的，但实际开发中应该避免对猴子补丁的使用，以免造成代码行为不一致的问题。
+
+在使用`gevent`库的时候，我们会在代码开头的地方执行`gevent.monkey.patch_all()`，这行代码的作用是把标准库中的`socket`模块给替换掉，这样我们在使用`socket`的时候，不用修改任何代码就可以实现对代码的协程化，达到提升性能的目的，这就是对猴子补丁的应用。
+
+另外，如果希望用`ujson`三方库替换掉标准库中的`json`，也可以使用猴子补丁的方式，代码如下所示。
+
+```Python
+import json, ujson
+
+json.__name__ = 'ujson'
+json.dumps = ujson.dumps
+json.loads = ujson.loads
+```
+
+单元测试中的`Mock`技术也是对猴子补丁的应用，Python中的`unittest.mock`模块就是解决单元测试中用`Mock`对象替代被测对象所依赖的对象的模块。
+
+#### 题目32：阅读下面的代码说出运行结果。
+
+```Python
+class A:
+    def who(self):
+        print('A', end='')
+
+class B(A):
+    def who(self):
+        super(B, self).who()
+        print('B', end='')
+
+class C(A):
+    def who(self):
+        super(C, self).who()
+        print('C', end='')
+
+class D(B, C):
+    def who(self):
+        super(D, self).who()
+        print('D', end='')
+
+item = D()
+item.who()
+```
+
+> **点评**：这道题考查到了两个知识点：
+>
+> 1. Python中的MRO（方法解析顺序）。在没有多重继承的情况下，向对象发出一个消息，如果对象没有对应的方法，那么向上（父类）搜索的顺序是非常清晰的。如果向上追溯到`object`类（所有类的父类）都没有找到对应的方法，那么将会引发`AttributeError`异常。但是有多重继承尤其是出现菱形继承（钻石继承）的时候，向上追溯到底应该找到那个方法就得确定MRO。Python 3中的类以及Python 2中的新式类使用[C3算法](<https://www.jianshu.com/p/a08c61abe895>)来确定MRO，它是一种类似于广度优先搜索的方法；Python 2中的旧式类（经典类）使用深度优先搜索来确定MRO。在搞不清楚MRO的情况下，可以使用类的`mro`方法或`__mro__`属性来获得类的MRO列表。
+> 2. `super()`函数的使用。在使用`super`函数时，可以通过`super(类型, 对象)`来指定对哪个对象以哪个类为起点向上搜索父类方法。所以上面`B`类代码中的`super(B, self).who()`表示以B类为起点，向上搜索`self`（D类对象）的`who`方法，所以会找到`C`类中的`who`方法，因为`D`类对象的MRO列表是`D --> B --> C --> A --> object`。
+
+```
+ACBD
+```
+
+#### 题目33：编写一个函数实现对逆波兰表达式求值，不能使用Python的内置函数。
+
+> **点评**：[逆波兰表达式](<https://baike.baidu.com/item/%E9%80%86%E6%B3%A2%E5%85%B0%E5%BC%8F/128437>)也称为“后缀表达式”，相较于平常我们使用的“中缀表达式”，逆波兰表达式不需要括号来确定运算的优先级，例如`5 * (2 + 3)`对应的逆波兰表达式是`5 2 3 + *`。逆波兰表达式求值需要借助栈结构，扫描表达式遇到运算数就入栈，遇到运算符就出栈两个元素做运算，将运算结果入栈。表达式扫描结束后，栈中只有一个数，这个数就是最终的运算结果，直接出栈即可。
+
+```Python
+import operator
+
+
+class Stack:
+    """栈（FILO）"""
+
+    def __init__(self):
+        self.elems = []
+    
+    def push(self, elem):
+        """入栈"""
+        self.elems.append(elem)
+    
+    def pop(self):
+        """出栈"""
+        return self.elems.pop()
+    
+    @property
+    def is_empty(self):
+        """检查栈是否为空"""
+        return len(self.elems) == 0
+
+
+def eval_suffix(expr):
+    """逆波兰表达式求值"""
+    operators = {
+        '+': operator.add,
+        '-': operator.sub,
+        '*': operator.mul,
+        '/': operator.truediv
+    }
+    stack = Stack()
+    for item in expr.split():
+        if item.isdigit():
+            stack.push(float(item))
+        else:              
+            num2 = stack.pop()
+            num1 = stack.pop()
+            stack.push(operators[item](num1, num2))
+    return stack.pop()
+```
+
+#### 题目34：Python中如何实现字符串替换操作？
+
+Python中实现字符串替换大致有两类方法：字符串的`replace`方法和正则表达式的`sub`方法。
+
+方法一：使用字符串的`replace`方法。
+
+```Python
+message = 'hello, world!'
+print(message.replace('o', 'O').replace('l', 'L').replace('he', 'HE'))
+```
+
+方法二：使用正则表达式的`sub`方法。
+
+```Python
+import re
+
+message = 'hello, world!'
+pattern = re.compile('[aeiou]')
+print(pattern.sub('#', message))
+```
+
+> **扩展**：还有一个相关的面试题，对保存文件名的列表排序，要求文件名按照字母表和数字大小进行排序，例如对于列表`filenames = ['a12.txt', 'a8.txt', 'b10.txt', 'b2.txt', 'b19.txt', 'a3.txt'] `，排序的结果是`['a3.txt', 'a8.txt', 'a12.txt', 'b2.txt', 'b10.txt', 'b19.txt']`。提示一下，可以通过字符串替换的方式为文件名补位，根据补位后的文件名用`sorted`函数来排序，大家可以思考下这个问题如何解决。
+
+#### 题目35：如何剖析Python代码的执行性能？
+
+剖析代码性能可以使用Python标准库中的`cProfile`和`pstats`模块，`cProfile`的`run`函数可以执行代码并收集统计信息，创建出`Stats`对象并打印简单的剖析报告。`Stats`是`pstats`模块中的类，它是一个统计对象。当然，也可以使用三方工具`line_profiler`和`memory_profiler`来剖析每一行代码耗费的时间和内存，这两个三方工具都会用非常友好的方式输出剖析结构。如果使用PyCharm，可以利用“Run”菜单的“Profile”菜单项对代码进行性能分析，PyCharm中可以用表格或者调用图（Call Graph）的方式来显示性能剖析的结果。
+
+下面是使用`cProfile`剖析代码性能的例子。
+
+`example.py`
+
+```Python
+import cProfile
+
+
+def is_prime(num):
+    for factor in range(2, int(num ** 0.5) + 1):
+        if num % factor == 0:
+            return False
+    return True
+
+
+class PrimeIter:
+
+    def __init__(self, total):
+        self.counter = 0
+        self.current = 1
+        self.total = total
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.counter < self.total:
+            self.current += 1
+            while not is_prime(self.current):
+                self.current += 1
+            self.counter += 1
+            return self.current
+        raise StopIteration()
+
+
+cProfile.run('list(PrimeIter(10000))')
+```
+
+如果使用`line_profiler`三方工具，可以直接剖析`is_prime`函数每行代码的性能，需要给`is_prime`函数添加一个`profiler`装饰器，代码如下所示。
+
+```Python
+@profiler
+def is_prime(num):
+    for factor in range(2, int(num ** 0.5) + 1):
+        if num % factor == 0:
+            return False
+    return True
+```
+
+安装`line_profiler`。
+
+```Bash
+pip install line_profiler
+```
+
+使用`line_profiler`。
+
+```Bash
+kernprof -lv example.py
+```
+
+运行结果如下所示。
+
+```
+Line #    Hits    Time      Per Hit  % Time  Line Contents
+==============================================================
+     1                                       @profile
+     2                                       def is_prime(num):
+     3    86624   48420.0   0.6      50.5        for factor in range(2, int(num ** 0.5) + 1):
+     4    85624   44000.0   0.5      45.9            if num % factor == 0:
+     5    6918     3080.0   0.4       3.2                return False
+     6    1000      430.0   0.4       0.4        return True
+```
+
+#### 题目36：如何使用`random`模块生成随机数、实现随机乱序和随机抽样？
+
+> **点评**：送人头的题目，因为Python标准库中的常用模块应该是Python开发者都比较熟悉的内容，这个问题回如果答不上来，整个面试基本也就砸锅了。
+
+1. `random.random()`函数可以生成`[0.0, 1.0)`之间的随机浮点数。
+2. `random.uniform(a, b)`函数可以生成`[a, b]`或`[b, a]`之间的随机浮点数。
+3. `random.randint(a, b)`函数可以生成`[a, b]`或`[b, a]`之间的随机整数。
+4. `random.shuffle(x)`函数可以实现对序列`x`的原地随机乱序。
+5. `random.choice(seq)`函数可以从非空序列中取出一个随机元素。
+6. `random.choices(population, weights=None, *, cum_weights=None, k=1)`函数可以从总体中随机抽取（有放回抽样）出容量为`k`的样本并返回样本的列表，可以通过参数指定个体的权重，如果没有指定权重，个体被选中的概率均等。
+7. `random.sample(population, k)`函数可以从总体中随机抽取（无放回抽样）出容量为`k`的样本并返回样本的列表。
+
+> **扩展**：`random`模块提供的函数除了生成均匀分布的随机数外，还可以生成其他分布的随机数，例如`random.gauss(mu, sigma)`函数可以生成高斯分布（正态分布）的随机数；`random.paretovariate(alpha)`函数会生成帕累托分布的随机数；`random.gammavariate(alpha, beta)`函数会生成伽马分布的随机数。
+
+#### 题目37：解释一下线程池的工作原理。
+
+线程池是一种用于减少线程本身创建和销毁造成的开销的技术，属于典型的空间换时间操作。如果应用程序需要频繁的将任务派发到线程中执行，线程池就是必选项，因为创建和释放线程涉及到大量的系统底层操作，开销较大，如果能够在应用程序工作期间，将创建和释放线程的操作变成预创建和借还操作，将大大减少底层开销。线程池在应用程序启动后，立即创建一定数量的线程，放入空闲队列中。这些线程最开始都处于阻塞状态，不会消耗CPU资源，但会占用少量的内存空间。当任务到来后，从队列中取出一个空闲线程，把任务派发到这个线程中运行，并将该线程标记为已占用。当线程池中所有的线程都被占用后，可以选择自动创建一定数量的新线程，用于处理更多的任务，也可以选择让任务排队等待直到有空闲的线程可用。在任务执行完毕后，线程并不退出结束，而是继续保持在池中等待下一次的任务。当系统比较空闲时，大部分线程长时间处于闲置状态时，线程池可以自动销毁一部分线程，回收系统资源。基于这种预创建技术，线程池将线程创建和销毁本身所带来的开销分摊到了各个具体的任务上，执行次数越多，每个任务所分担到的线程本身开销则越小。
+
+一般线程池都必须具备下面几个组成部分：
+
+1. 线程池管理器：用于创建并管理线程池。
+2. 工作线程和线程队列：线程池中实际执行的线程以及保存这些线程的容器。
+3. 任务接口：将线程执行的任务抽象出来，形成任务接口，确保线程池与具体的任务无关。
+4. 任务队列：线程池中保存等待被执行的任务的容器。
+
+#### 题目38：举例说明什么情况下会出现`KeyError`、`TypeError`、`ValueError`。
+
+举一个简单的例子，变量`a`是一个字典，执行`int(a['x'])`这个操作就有可能引发上述三种类型的异常。如果字典中没有键`x`，会引发`KeyError`；如果键`x`对应的值不是`str`、`float`、`int`、`bool`以及`bytes-like`类型，在调用`int`函数构造`int`类型的对象时，会引发`TypeError`；如果`a[x]`是一个字符串或者字节串，而对应的内容又无法处理成`int`时，将引发`ValueError`。
+
+#### 题目39：说出下面代码的运行结果。
+
+```Python
+def extend_list(val, items=[]):
+    items.append(val)
+    return items
+
+list1 = extend_list(10)
+list2 = extend_list(123, [])
+list3 = extend_list('a')
+print(list1)
+print(list2)
+print(list3)
+```
+
+> **点评**：Python函数在定义的时候，默认参数`items`的值就被计算出来了，即`[]`。因为默认参数`items`引用了对象`[]`，每次调用该函数，如果对`items`引用的列表进行了操作，下次调用时，默认参数还是引用之前的那个列表而不是重新赋值为`[]`，所以列表中会有之前添加的元素。如果通过传参的方式为`items`重新赋值，那么`items`将引用到新的列表对象，而不再引用默认的那个列表对象。
+
+```
+[10, 'a']
+[123]
+[10, 'a']
+```
+
+#### 题目40：如何读取大文件，例如内存只有4G，如何读取一个大小为8G的文件？
+
+很显然4G内存要一次性的加载大小为8G的文件是不现实的，遇到这种情况必须要考虑多次读取和分批次处理。在Python中读取文件可以先通过`open`函数获取文件对象，在读取文件时，可以通过`read`方法的`size`参数指定读取的大小，也可以通过`seek`方法的`offset`参数指定读取的位置，这样就可以控制单次读取数据的字节数和总字节数。除此之外，可以使用内置函数`iter`将文件对象处理成迭代器对象，每次只读取少量的数据进行处理，代码大致写法如下所示。
+
+```Python
+with open('...', 'rb') as file:
+    for data in iter(lambda: file.read(2097152), b''):
+        pass
+```
+
+在Linux系统上，可以通过`split`命令将大文件切割为小片，然后通过读取切割后的小文件对数据进行处理。例如下面的命令将名为`filename`的大文件切割为大小为512M的多个文件。
+
+```Bash
+split -b 512m filename
+```
+
+如果愿意， 也可以将名为`filename`的文件切割为10个文件，命令如下所示。
+
+```Bash
+split -n 10 filename
+```
+
+> **扩展**：外部排序跟上述的情况非常类似，由于处理的数据不能一次装入内存，只能放在读写较慢的外存储器（通常是硬盘）上。“**排序-归并算法**”就是一种常用的外部排序策略。在排序阶段，先读入能放在内存中的数据量，将其排序输出到一个临时文件，依此进行，将待排序数据组织为多个有序的临时文件，然后在归并阶段将这些临时文件组合为一个大的有序文件，这个大的有序文件就是排序的结果。
 
