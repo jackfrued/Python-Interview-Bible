@@ -2,7 +2,7 @@
 
 #### 题目001: 在Python中如何实现单例模式。
 
-> **点评**：这个题目在面试中出现的频率极高，因为它考察的不仅仅是单例模式，更是对Python语言到底掌握到何种程度，建议大家用装饰器和元类这两种方式来实现单例模式，因为这两种方式的通用性最强，而且也可以顺便展示自己对装饰器和元类中两个关键知识点的理解。
+> **点评**：单例模式是指让一个类只能创建出唯一的实例，这个题目在面试中出现的频率极高，因为它考察的不仅仅是单例模式，更是对Python语言到底掌握到何种程度，建议大家用装饰器和元类这两种方式来实现单例模式，因为这两种方式的通用性最强，而且也可以顺便展示自己对装饰器和元类中两个关键知识点的理解。
 
 方法一：使用装饰器实现单例模式。
 
@@ -52,11 +52,11 @@ class President(metaclass=SingletonMeta):
 
 > **扩展**：Python是面向对象的编程语言，在面向对象的世界中，一切皆为对象。对象是通过类来创建的，而类本身也是对象，类这样的对象是通过元类来创建的。我们在定义类时，如果没有给一个类指定父类，那么默认的父类是`object`，如果没有给一个类指定元类，那么默认的元类是`type`。通过自定义的元类，我们可以改变一个类默认的行为，就如同上面的代码中，我们通过元类的`__call__`魔术方法，改变了`President`类的构造器那样。
 
-关于单例模式，在面试中还有可能被问到它的应用场景。通常一个对象的状态是被其他对象共享的，就可以将其设计为单例，例如项目中使用的数据库连接池对象和配置对象通常都是单例，这样才能保证所有地方获取到的数据库连接和配置信息是完全一致的；而且由于对象只有唯一的实例，因此从根本上避免了重复创建对象造成的时间和空间上的开销，也避免了对资源的多重占用。再举个例子，项目中的日志操作通常也会使用单例模式，这是因为共享的日志文件一直处于打开状态，只能有一个实例去操作它，否则在写入日志的时候会产生混乱。
+> **补充**：关于单例模式，在面试中还有可能被问到它的应用场景。通常一个对象的状态是被其他对象共享的，就可以将其设计为单例，例如项目中使用的数据库连接池对象和配置对象通常都是单例，这样才能保证所有地方获取到的数据库连接和配置信息是完全一致的；而且由于对象只有唯一的实例，因此从根本上避免了重复创建对象造成的时间和空间上的开销，也避免了对资源的多重占用。再举个例子，项目中的日志操作通常也会使用单例模式，这是因为共享的日志文件一直处于打开状态，只能有一个实例去操作它，否则在写入日志的时候会产生混乱。
 
 #### 题目002：不使用中间变量，交换两个变量`a`和`b`的值。
 
->**点评**：典型的送人头的题目，在其他编程语言中不使用中间变量交换两个变量的值可以使用异或运算，Python中还可以通过内置的字节码指令直接交换两个变量的值。
+>**点评**：典型的送人头的题目，通常交换两个变量需要借助一个中间变量，如果不允许使用中间变量，在其他编程语言中可以使用异或运算的方式来实现交换两个变量的值，但是Python中有更为简单明了的做法。
 
 方法一：
 
@@ -243,40 +243,38 @@ typedef struct _object {
 
 > **点评**：很多人面试者都会写迭代器和生成器，但是却无法准确的解释什么是迭代器和生成器。如果你也有同样的困惑，可以参考下面的回答。
 
-迭代器是实现了迭代器协议的对象。跟其他编程语言不通，Python中没有用于定义协议或表示约定的关键字，像`interface`、`protocol`这些单词并不在Python语言的关键字列表中。Python语言通过魔法方法来表示约定，也就是我们所说的协议，而`__next__`和`__iter__`这两个魔法方法就代表了迭代器协议。生成器是迭代器的语法升级版本，可以用更为简单的代码来实现一个迭代器。
+迭代器是实现了迭代器协议的对象。跟其他编程语言不通，Python中没有用于定义协议或表示约定的关键字，像`interface`、`protocol`这些单词并不在Python语言的关键字列表中。Python语言通过魔法方法来表示约定，也就是我们所说的协议，而`__next__`和`__iter__`这两个魔法方法就代表了迭代器协议。可以通过`for-in`循环从迭代器对象中取出值，也可以使用`next`函数取出迭代器对象中的下一个值。生成器是迭代器的语法升级版本，可以用更为简单的代码来实现一个迭代器。
 
-面试中经常会让面试者写生成斐波那契数列的迭代器，下面给出参考代码，其他的迭代器可以如法炮制。
-
-```Python
-class Fib(object):
-    
-    def __init__(self, num):
-        self.num = num
-        self.a, self.b = 0, 1
-        self.idx = 0
-   
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.idx < self.num:
-            self.a, self.b = self.b, self.a + self.b
-            self.idx += 1
-            return self.a
-        raise StopIteration()
-```
-
-如果用生成器的语法来改写上面的代码，代码会简单优雅很多。
-
-```Python
-def fib(num):
-    a, b = 0, 1
-    for _ in range(num):
-        a, b = b, a + b
-        yield a
-```
-
-可以通过`for-in`循环从迭代器对象中取出值，也可以使用`next`函数取出迭代器对象中的下一个值。
+> **扩展**：面试中经常让写生成斐波那契数列的迭代器，大家可以参考下面的代码。
+>
+> ```Python
+> class Fib(object):
+>     
+>     def __init__(self, num):
+>         self.num = num
+>         self.a, self.b = 0, 1
+>         self.idx = 0
+>    
+>     def __iter__(self):
+>         return self
+> 
+>     def __next__(self):
+>         if self.idx < self.num:
+>             self.a, self.b = self.b, self.a + self.b
+>             self.idx += 1
+>             return self.a
+>         raise StopIteration()
+> ```
+>
+> 如果用生成器的语法来改写上面的代码，代码会简单优雅很多。
+>
+> ```Python
+> def fib(num):
+>     a, b = 0, 1
+>     for _ in range(num):
+>         a, b = b, a + b
+>         yield a
+> ```
 
 #### 题目009：正则表达式的match方法和search方法有什么区别？
 
@@ -635,7 +633,7 @@ Python中，函数的参数分为位置参数、可变参数、关键字参数�
 
 #### 题目25：写一个记录函数执行时间的装饰器。
 
-> **点评**：高频面试题，也是最简单的装饰器，面试者必须要掌握的内容。
+> **点评**：高频面试题，也是最简单的装饰器，面试者**必须要掌握的内容**。
 
 方法一：用函数实现装饰器。
 
@@ -965,6 +963,8 @@ Line #    Hits    Time      Per Hit  % Time  Line Contents
 
 #### 题目37：解释一下线程池的工作原理。
 
+> **点评**：池化技术就是一种典型空间换时间的策略，我们使用的数据库连接池、线程池等都是池化技术的应用，Python标准库`currrent.futures`模块的`ThreadPoolExecutor`就是线程池的实现，如果要弄清楚它的工作原理，可以参考下面的内容。
+
 线程池是一种用于减少线程本身创建和销毁造成的开销的技术，属于典型的空间换时间操作。如果应用程序需要频繁的将任务派发到线程中执行，线程池就是必选项，因为创建和释放线程涉及到大量的系统底层操作，开销较大，如果能够在应用程序工作期间，将创建和释放线程的操作变成预创建和借还操作，将大大减少底层开销。线程池在应用程序启动后，立即创建一定数量的线程，放入空闲队列中。这些线程最开始都处于阻塞状态，不会消耗CPU资源，但会占用少量的内存空间。当任务到来后，从队列中取出一个空闲线程，把任务派发到这个线程中运行，并将该线程标记为已占用。当线程池中所有的线程都被占用后，可以选择自动创建一定数量的新线程，用于处理更多的任务，也可以选择让任务排队等待直到有空闲的线程可用。在任务执行完毕后，线程并不退出结束，而是继续保持在池中等待下一次的任务。当系统比较空闲时，大部分线程长时间处于闲置状态时，线程池可以自动销毁一部分线程，回收系统资源。基于这种预创建技术，线程池将线程创建和销毁本身所带来的开销分摊到了各个具体的任务上，执行次数越多，每个任务所分担到的线程本身开销则越小。
 
 一般线程池都必须具备下面几个组成部分：
@@ -993,7 +993,7 @@ print(list2)
 print(list3)
 ```
 
-> **点评**：Python函数在定义的时候，默认参数`items`的值就被计算出来了，即`[]`。因为默认参数`items`引用了对象`[]`，每次调用该函数，如果对`items`引用的列表进行了操作，下次调用时，默认参数还是引用之前的那个列表而不是重新赋值为`[]`，所以列表中会有之前添加的元素。如果通过传参的方式为`items`重新赋值，那么`items`将引用到新的列表对象，而不再引用默认的那个列表对象。
+> **点评**：Python函数在定义的时候，默认参数`items`的值就被计算出来了，即`[]`。因为默认参数`items`引用了对象`[]`，每次调用该函数，如果对`items`引用的列表进行了操作，下次调用时，默认参数还是引用之前的那个列表而不是重新赋值为`[]`，所以列表中会有之前添加的元素。如果通过传参的方式为`items`重新赋值，那么`items`将引用到新的列表对象，而不再引用默认的那个列表对象。这个题在面试中经常被问到，通常不建议使用容器类型的默认参数，像PyLint这样的代码检查工具也会对这种代码提出质疑和警告。
 
 ```
 [10, 'a']
@@ -1025,3 +1025,309 @@ split -n 10 filename
 
 > **扩展**：外部排序跟上述的情况非常类似，由于处理的数据不能一次装入内存，只能放在读写较慢的外存储器（通常是硬盘）上。“**排序-归并算法**”就是一种常用的外部排序策略。在排序阶段，先读入能放在内存中的数据量，将其排序输出到一个临时文件，依此进行，将待排序数据组织为多个有序的临时文件，然后在归并阶段将这些临时文件组合为一个大的有序文件，这个大的有序文件就是排序的结果。
 
+#### 题目41：说一下你对Python中模块和包的理解。
+
+每个Python文件就是一个模块，而保存这些文件的文件夹就是一个包，但是这个作为Python包的文件夹必须要有一个名为`__init__.py`的文件，否则无法导入这个包。通常一个文件夹下还可以有子文件夹，这也就意味着一个包下还可以有子包，子包中的`__init__.py`并不是必须的。模块和包解决了Python中命名冲突的问题，不同的包下可以有同名的模块，不同的模块下可以有同名的变量、函数或类。在Python中可以使用`import`或`from ... import ...`来导入包和模块，在导入的时候还可以使用`as`关键字对包、模块、类、函数、变量等进行别名，从而彻底解决编程中尤其是多人协作团队开发时的命名冲突问题。
+
+#### 题目42：说一下你知道的Python编码规范。
+
+> **点评**：企业的Python编码规范基本上是参照[PEP-8](<https://www.python.org/dev/peps/pep-0008/>)或[谷歌开源项目风格指南](<https://zh-google-styleguide.readthedocs.io/en/latest/google-python-styleguide/>)来制定的，后者还提到了可以使用Lint工具来检查代码的规范程度，面试的时候遇到这类问题，可以先说下这两个参照标准，然后挑重点说一下Python编码的注意事项。
+
+1. 空格的使用
+   - 使用空格来表示缩进而不要用制表符（Tab）。
+   - 和语法相关的每一层缩进都用4个空格来表示。
+   - 每行的字符数不要超过79个字符，如果表达式因太长而占据了多行，除了首行之外的其余各行都应该在正常的缩进宽度上再加上4个空格。
+   - 函数和类的定义，代码前后都要用两个空行进行分隔。
+   - 在同一个类中，各个方法之间应该用一个空行进行分隔。
+   - 二元运算符的左右两侧应该保留一个空格，而且只要一个空格就好。
+2. 标识符命名
+   - 变量、函数和属性应该使用小写字母来拼写，如果有多个单词就使用下划线进行连接。
+   - 类中受保护的实例属性，应该以一个下划线开头。
+   - 类中私有的实例属性，应该以两个下划线开头。
+   - 类和异常的命名，应该每个单词首字母大写。
+   - 模块级别的常量，应该采用全大写字母，如果有多个单词就用下划线进行连接。
+   - 类的实例方法，应该把第一个参数命名为`self`以表示对象自身。
+   - 类的类方法，应该把第一个参数命名为`cls`以表示该类自身。
+3. 表达式和语句
+   - 采用内联形式的否定词，而不要把否定词放在整个表达式的前面。例如：`if a is not b`就比`if not a is b`更容易让人理解。
+   - 不要用检查长度的方式来判断字符串、列表等是否为`None`或者没有元素，应该用`if not x`这样的写法来检查它。
+   - 就算`if`分支、`for`循环、`except`异常捕获等中只有一行代码，也不要将代码和`if`、`for`、`except`等写在一起，分开写才会让代码更清晰。
+   - `import`语句总是放在文件开头的地方。
+   - 引入模块的时候，`from math import sqrt`比`import math`更好。
+   - 如果有多个`import`语句，应该将其分为三部分，从上到下分别是Python**标准模块**、**第三方模块**和**自定义模块**，每个部分内部应该按照模块名称的**字母表顺序**来排列。
+
+#### 题目43：运行下面的代码是否会报错，如果报错请说明哪里有什么样的错，如果不报错请说出代码的执行结果。
+
+```Python
+class A: 
+    def __init__(self, value):
+        self.__value = value
+
+    @property
+    def value(self):
+        return self.__value
+
+obj = A(1)
+obj.__value = 2
+print(obj.value)
+print(obj.__value)
+```
+
+> **点评**：这道题有两个考察点，一个考察点是对`_`和`__`开头的对象属性访问权限以及`@property`装饰器的了解，另外一个考察的点是对动态语言的理解，不需要过多的解释。
+
+```
+1
+2
+```
+
+> **扩展**：如果不希望代码运行时动态的给对象添加新属性，可以在定义类时使用`__slots__`魔法。例如，我们可以在上面的`A`中添加一行`__slots__ = ('__value', )`，再次运行上面的代码，将会在原来的第10行处产生`AttributeError`错误。
+
+#### 题目44：对下面给出的字典按值从大到小对键进行排序。
+
+```Python
+prices = {
+    'AAPL': 191.88,
+    'GOOG': 1186.96,
+    'IBM': 149.24,
+    'ORCL': 48.44,
+    'ACN': 166.89,
+    'FB': 208.09,
+    'SYMC': 21.29
+}
+```
+
+> **点评**：`sorted`函数的高阶用法在面试的时候经常出现，`key`参数可以传入一个函数名或一个Lambda函数，该函数的返回值代表了在排序时比较元素的依据。
+
+```Python
+sorted(prices, key=lambda x: prices[x], reverse=True) 
+```
+
+#### 题目45：说一下`namedtuple`的用法和作用。
+
+> **点评**：Python标准库的`collections`模块提供了很多有用的数据结构，这些内容并不是每个开发者都清楚，就比如题目问到的`namedtuple`，在我参加过的面试中，90%的面试者都不能准确的说出它的作用和应用场景。此外，`deque`也是一个非常有用但又经常被忽视的类，还有`Counter`、`OrderedDict` 、`defaultdict` 、`UserDict`等类，大家清楚它们的用法吗？
+
+在使用面向对象编程语言的时候，定义类是最常见的一件事情，有的时候，我们会用到只有属性没有方法的类，这种类的对象通常只用于组织数据，并不能接收消息，所以我们把这种类称为数据类或者退化的类，就像C语言中的结构体那样。我们并不建议使用这种退化的类，在Python中可以用`namedtuple`（命名元组）来替代这种类。
+
+```Python
+from collections import namedtuple
+
+Card = namedtuple('Card', ('suite', 'face'))
+card1 = Card('红桃', 13)
+card2 = Card('草花', 5)
+print(f'{card1.suite}{card1.face}')
+print(f'{card2.suite}{card2.face}')
+```
+
+命名元组与普通元组一样是不可变容器，一旦将数据存储在`namedtuple`的顶层属性中，数据就不能再修改了，也就意味着对象上的所有属性都遵循“一次写入，多次读取”的原则。和普通元组不同的是，命名元组中的数据有访问名称，可以通过名称而不是索引来获取保存的数据，不仅在操作上更加简单，代码的可读性也会更好。
+
+命名元组的本质就是一个类，所以它还可以作为父类创建子类。除此之外，命名元组内置了一系列的方法，例如，可以通过`_asdict`方法将命名元组处理成字典，也可以通过`_replace`方法创建命名元组对象的浅拷贝。
+
+```Python
+class MyCard(Card):
+    
+    def show(self):
+        faces = ['', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+        return f'{self.suite}{faces[self.face]}'
+
+
+print(Card)    # <class '__main__.Card'>
+card3 = MyCard('方块', 12)
+print(card3.show())    # 方块Q
+print(dict(card1._asdict()))    # {'suite': '红桃', 'face': 13}
+print(card2._replace(suite='方块'))    # Card(suite='方块', face=5)
+```
+
+总而言之，命名元组能更好的组织数据结构，让代码更加清晰和可读，在很多场景下是元组、字典和数据类的替代品。在需要创建占用空间更少的不可变类时，命名元组就是很好的选择。
+
+#### 题目46：按照题目要求写出对应的函数。
+
+> **要求**：写一个函数，传入一个有若干个整数的列表，该列表中某个元素出现的次数超过了50%，返回这个元素。
+
+```Python
+def more_than_half(items):
+    temp, times = None, 0
+    for item in items:
+        if times == 0:
+            temp = item
+            times += 1
+        else:
+            if item == temp:
+                times += 1
+            else:
+                times -= 1
+    return temp
+```
+
+> **点评**：LeetCode上的题目，在Python面试中出现过，利用元素出现次数超过了50%这一特征，出现和`temp`相同的元素就将计数值加1，出现和`temp`不同的元素就将计数值减1。如果计数值为`0`，说明之前出现的元素已经对最终的结果没有影响，用`temp`记下当前元素并将计数值置为`1`。最终，出现次数超过了50%的这个元素一定会被赋值给变量`temp`。
+
+#### 题目47：按照题目要求写出对应的函数。
+
+> **要求**：写一个函数，传入的参数是一个列表（列表中的元素可能也是一个列表），返回该列表最大的嵌套深度。例如：列表`[1, 2, 3]`的嵌套深度为`1`，列表`[[1], [2, [3]]]`的嵌套深度为`3`。
+
+```Python
+def list_depth(items):
+    if isinstance(items, list):
+        max_depth = 1
+        for item in items:
+            max_depth = max(list_depth(item) + 1, max_depth)
+        return max_depth
+    return 0
+```
+
+> **点评**：看到题目应该能够比较自然的想到使用递归的方式检查列表中的每个元素。
+
+#### 题目48：按照题目要求写出对应的装饰器。
+
+> **要求**：有一个通过网络获取数据的函数（可能会因为网络原因出现异常），写一个装饰器让这个函数在出现指定异常时可以重试指定的次数，并在每次重试之前随机延迟一段时间，最长延迟时间可以通过参数进行控制。
+
+方法一：
+
+```Python
+from functools import wraps
+from random import random
+from time import sleep
+
+
+def retry(*, retry_times=3, max_wait_secs=5, errors=(Exception, )):
+
+    def decorate(func):
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for _ in range(retry_times):
+                try:
+                    return func(*args, **kwargs)
+                except errors:
+                    sleep(random() * max_wait_secs)
+            return None
+
+        return wrapper
+
+    return decorate
+```
+
+方法二：
+
+```Python
+from functools import wraps
+from random import random
+from time import sleep
+
+
+class Retry(object):
+
+    def __init__(self, *, retry_times=3, max_wait_secs=5, errors=(Exception, )):
+        self.retry_times = retry_times
+        self.max_wait_secs = max_wait_secs
+        self.errors = errors
+
+    def __call__(self, func):
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for _ in range(self.retry_times):
+                try:
+                    return func(*args, **kwargs)
+                except self.errors:
+                    sleep(random() * self.max_wait_secs)
+            return None
+
+        return wrapper
+```
+
+> **点评**：我们不止一次强调过，装饰器几乎是Python面试必问内容，这个题目比之前的题目稍微复杂一些，它需要的是一个参数化的装饰器。
+
+#### 题目49：写一个函数实现字符串反转，尽可能写出你知道的所有方法。
+
+> **点评**：烂大街的题目，基本上算是送人头的题目。
+
+方法一：反向切片
+
+```Python
+def reverse_string(content):
+    return content[::-1]
+```
+
+方法二：反转拼接
+
+```Python
+def reverse_string(content):
+    return ''.join(reversed(content))
+```
+
+方法三：递归调用
+
+```Python
+def reverse_string(content):
+    if len(content) <= 1:
+        return content
+    return reverse_string(content[1:]) + content[0]
+```
+
+方法四：双端队列
+
+```Python
+from collections import deque
+
+def reverse_string(content):
+    q = deque()
+    q.extendleft(content)
+    return ''.join(q)
+```
+
+方法五：反向组装
+
+```Python
+from io import StringIO
+
+def reverse_string(content):
+    buffer = StringIO()
+    for i in range(len(content) - 1, -1, -1):
+        buffer.write(content[i])
+    return buffer.getvalue()
+```
+
+方法六：反转拼接
+
+```Python
+def reverse_string(content):
+    return ''.join([content[i] for i in range(len(content) - 1, -1, -1)])
+```
+
+方法七：半截交换
+
+```Python
+def reverse_string(content):
+    length, content= len(content), list(content)
+    for i in range(length // 2):
+        content[i], content[length - 1 - i] = content[length - 1 - i], content[i]
+    return ''.join(content)
+```
+
+方法八：对位交换
+
+```Python
+def reverse_string(content):
+    length, content= len(content), list(content)
+    for i, j in zip(range(length // 2), range(length - 1, length // 2 - 1, -1)):
+        content[i], content[j] = content[j], content[i]
+    return ''.join(content)
+```
+
+> **扩展**：这些方法其实都是大同小异的，面试的时候能够给出几种有代表性的就足够了。给大家留一个思考题，上面这些方法，哪些做法的性能较好呢？我们之前提到过剖析代码性能的方法，大家可以用这些方法来检验下你给出的答案是否正确。
+
+#### 题目50：按照题目要求写出对应的函数。
+
+> **要求**：列表中有`1000000`个元素，取值范围是`[1000, 10000)`，设计一个函数找出列表中的重复元素。
+
+```Python
+def find_dup(items: list):
+    dups = [0] * 9000
+    for item in items:
+        dups[item - 1000] += 1
+    for idx, val in enumerate(dups):
+        if val > 1:
+            yield idx + 1000
+```
+
+> **点评**：这道题的解法和[计数排序](<https://www.runoob.com/w3cnote/counting-sort.html>)的原理一致，虽然元素的数量非常多，但是取值范围`[1000, 10000)`并不是很大，只有9000个可能的取值，所以可以用一个能够保存9000个元素的`dups`列表来记录每个元素出现的次数，`dups`列表所有元素的初始值都是`0`，通过对`items`列表中元素的遍历，当出现某个元素时，将`dups`列表对应位置的值加1，最后`dups`列表中值大于1的元素对应的就是`items`列表中重复出现过的元素。
