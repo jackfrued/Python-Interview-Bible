@@ -746,7 +746,7 @@ Python中有四种作用域，分别是局部作用域（**L**ocal）、嵌套�
 15. Python 3中字典的`keys`、`values`、`items`方法都不再返回`list`对象，而是返回`view object`，内置的`map`、`filter`等函数也不再返回`list`对象，而是返回迭代器对象。
 16. Python 3标准库中某些模块的名字跟Python 2是有区别的；而在三方库方面，有些三方库只支持Python 2，有些只能支持Python 3。
 
-####题目31：谈谈你对“猴子补丁”（monkey patching）的理解。
+#### 题目31：谈谈你对“猴子补丁”（monkey patching）的理解。
 
 “猴子补丁”是动态类型语言的一个特性，代码运行时在不修改源代码的前提下改变代码中的方法、属性、函数等以达到热补丁（hot patch）的效果。很多系统的安全补丁也是通过猴子补丁的方式来实现的，但实际开发中应该避免对猴子补丁的使用，以免造成代码行为不一致的问题。
 
@@ -1241,21 +1241,21 @@ class Retry(object):
 
 > **点评**：烂大街的题目，基本上算是送人头的题目。
 
-方法一：反向切片
+**方法一**：反向切片
 
 ```Python
 def reverse_string(content):
     return content[::-1]
 ```
 
-方法二：反转拼接
+**方法二**：反转拼接
 
 ```Python
 def reverse_string(content):
     return ''.join(reversed(content))
 ```
 
-方法三：递归调用
+**方法三**：递归调用
 
 ```Python
 def reverse_string(content):
@@ -1264,7 +1264,7 @@ def reverse_string(content):
     return reverse_string(content[1:]) + content[0]
 ```
 
-方法四：双端队列
+**方法四**：双端队列
 
 ```Python
 from collections import deque
@@ -1275,7 +1275,7 @@ def reverse_string(content):
     return ''.join(q)
 ```
 
-方法五：反向组装
+**方法五**：反向组装
 
 ```Python
 from io import StringIO
@@ -1287,14 +1287,14 @@ def reverse_string(content):
     return buffer.getvalue()
 ```
 
-方法六：反转拼接
+**方法六**：反转拼接
 
 ```Python
 def reverse_string(content):
     return ''.join([content[i] for i in range(len(content) - 1, -1, -1)])
 ```
 
-方法七：半截交换
+**方法七**：半截交换
 
 ```Python
 def reverse_string(content):
@@ -1304,7 +1304,7 @@ def reverse_string(content):
     return ''.join(content)
 ```
 
-方法八：对位交换
+**方法八**：对位交换
 
 ```Python
 def reverse_string(content):
@@ -1331,3 +1331,5 @@ def find_dup(items: list):
 ```
 
 > **点评**：这道题的解法和[计数排序](<https://www.runoob.com/w3cnote/counting-sort.html>)的原理一致，虽然元素的数量非常多，但是取值范围`[1000, 10000)`并不是很大，只有9000个可能的取值，所以可以用一个能够保存9000个元素的`dups`列表来记录每个元素出现的次数，`dups`列表所有元素的初始值都是`0`，通过对`items`列表中元素的遍历，当出现某个元素时，将`dups`列表对应位置的值加1，最后`dups`列表中值大于1的元素对应的就是`items`列表中重复出现过的元素。
+
+更多的面试题，请移步到我的知乎专栏[《Python面试宝典》](https://zhuanlan.zhihu.com/c_1228980105135497216)。
